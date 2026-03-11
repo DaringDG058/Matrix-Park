@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Matrix Park</title>
+    <style>
+        /* --- CSS STYLING --- */
+        body { 
+            background-color: #f4f7f6;
+            color: #333; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; padding: 0; 
+            height: 100vh;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* HEADER */
+        header {
+            background-color: white; 
+            padding: 10px 30px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: grid; 
+            grid-template-columns: 1fr auto 1fr; /* Left, Center, Right */
+            align-items: center;
+            height: 80px;
+        }
+
+        /* LEFT: Team Info */
+        .team-info {
+            text-align: left; font-size: 13px; font-weight: 600; color: #555; line-height: 1.4;
+        }
+
+        /* CENTER: Title */
+        h1 { 
+            margin: 0; font-size: 28px; color: #2c3e50; 
+            text-transform: uppercase; letter-spacing: 1px; text-align: center;
+        }
+
+        /* RIGHT: Tech & Stats */
+        .header-right { 
+            text-align: right; 
+            font-size: 13px; 
+            color: #555;
+            line-height: 1.4;
+        }
+        .header-right strong { color: #2c3e50; }
+        .live-stats {
+            margin-top: 5px;
+            padding: 5px 10px;
+            background: #ecf0f1;
+            border-radius: 5px;
+            display: inline-block;
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        /* MAIN CONTAINER */
+        .grid-container { 
+            display: flex; justify-content: space-between; gap: 20px; padding: 20px;
+            flex-grow: 1; height: calc(100vh - 170px);
+        }
+        
+        /* FLOORS */
+        .floor { 
+            background: white; border: 2px solid #333; border-radius: 15px; 
+            flex: 1; display: flex; flex-direction: column;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.1); overflow: hidden;
+        }
+
+        .floor-header {
+            background: #333; color: white; text-align: center;
+            padding: 10px; font-weight: bold; font-size: 18px;
+            border-bottom: 2px solid #000;
+        }
+
+        /* LANES */
+        .lanes-wrapper { display: flex; height: 100%; }
+
+        .lane {
+            flex: 1; border-right: 3px solid #000; display: flex; flex-direction: column;
+            padding: 5px; gap: 5px;
+        }
+        .lane:last-child { border-right: none; } 
+
+        .lane-label { text-align: center; font-weight: bold; color: #777; font-size: 11px; margin-bottom: 2px; }
+
+        /* SLOTS */
+        .slot {
+            flex: 1; background-color: white; border: 2px solid #333; border-radius: 4px;
+            cursor: pointer; display: flex; justify-content: center; align-items: center;
+            font-size: 10px; font-weight: bold; color: #aaa; transition: 0.1s;
+        }
+        
+        .slot.occupied { 
+            background-color: #e74c3c; border-color: #c0392b; color: white;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+        }
+        .slot:hover { transform: scale(1.05); }
+
+        /* BOTTOM MENU */
+        .controls { 
+            height: 70px; background: white; border-top: 1px solid #ddd;
+            display: flex; justify-content: center; align-items: center; gap: 20px; 
+        }
+        button { padding: 12px 24px; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; color: white; transition: 0.2s; font-size: 15px;}
+        .btn-add { background: #27ae60; }
+        .btn-del { background: #c0392b; }
+        .btn-sort { background: #2980b9; }
+
+        /* MODAL */
+        .modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(255,255,255,0.6); backdrop-filter: blur(8px); justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid #ccc; }
+        .modal-content input, .modal-content select { width: 90%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; background: #f9f9f9; }
+        .close { float: right; cursor: pointer; font-size: 24px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="team-info">
+            K M Dushyanth Gowda - 1MS24IS058<br>
+            Rohan Joshi - 1MS24IS097
+        </div>
+
+        <h1>🚗 Matrix Park</h1>
+
+        <div class="header-right">
+            <div><strong>Language:</strong> Python (Flask)</div>
+            <div><strong>Data Structures:</strong> 3D Array & Hash Map</div>
+            <div class="live-stats">
+                Parked: <span id="stat-parked">0</span> | Spaces Left: <span id="stat-free" style="color: #e74c3c">120</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="grid-container" id="building-view"></div>
+
+    <div class="controls">
+        <button class="btn-add" onclick="openModal('addModal')">+ Park New Car</button>
+        <button class="btn-del" onclick="openModal('delModal')">🗑 Delete / Bill</button>
+        <button class="btn-sort" onclick="showSorted()">⏳ View Sorted List</button>
+    </div>
+
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addModal')">&times;</span>
+            <h2>Park a Car</h2>
+            <input type="text" id="car_no" placeholder="Car Number (e.g. KA-01...)" autocomplete="off">
+            <input type="text" id="color" placeholder="Color" autocomplete="off">
+            <input type="text" id="type" placeholder="Type (SUV/Sedan)" autocomplete="off">
+            <hr>
+            <label>Select Slot:</label>
+            <div style="display:flex; gap:5px;">
+                <select id="floor_in"><option value="1">Floor 1</option><option value="2">Floor 2</option><option value="3">Floor 3</option></select>
+                <select id="row_in"><option value="1">Lane A</option><option value="2">Lane B</option><option value="3">Lane C</option><option value="4">Lane D</option></select>
+                <select id="col_in"><script>document.write([1,2,3,4,5,6,7,8,9,10].map(i => `<option value="${i}">Pos ${i}</option>`).join(''))</script></select>
+            </div>
+            <button class="btn-add" style="margin-top:15px; width:100%" onclick="submitCar()">Confirm</button>
+        </div>
+    </div>
+
+    <div id="delModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('delModal')">&times;</span>
+            <h2>Exit & Bill</h2>
+            <input type="text" id="del_car_no" placeholder="Enter Car Number">
+            <button class="btn-del" style="margin-top:15px; width:100%" onclick="processExit()">Generate Bill</button>
+        </div>
+    </div>
+
+    <script>
+        // --- JAVASCRIPT LOGIC ---
+
+        async function fetchGrid() {
+            try {
+                const response = await fetch('/api/status');
+                const parkingLot = await response.json();
+                renderBuilding(parkingLot);
+            } catch (error) { console.error(error); }
+        }
+
+        // RENDER LOGIC + STATS CALCULATION
+        function renderBuilding(data) {
+            const container = document.getElementById('building-view');
+            container.innerHTML = ''; 
+
+            let occupiedCount = 0;
+            const totalCapacity = 120; // 3 Floors * 4 Lanes * 10 Slots
+
+            data.forEach((floor, fIndex) => {
+                let floorHtml = `
+                    <div class="floor">
+                        <div class="floor-header">Floor ${fIndex + 1}</div>
+                        <div class="lanes-wrapper">`;
+
+                floor.forEach((row, rIndex) => {
+                    let laneLabel = String.fromCharCode(65 + rIndex); 
+                    floorHtml += `<div class="lane"><div class="lane-label">Lane ${laneLabel}</div>`;
+
+                    row.forEach((slot, cIndex) => {
+                        let isOccupied = slot !== null;
+                        
+                        if (isOccupied) {
+                            occupiedCount++; // Increment Counter
+                            let entry = slot.entry_time;
+                            let now = Date.now() / 1000; 
+                            let diff = Math.round(now - entry);
+                            let durationStr = diff < 60 ? `${diff} sec` : `${Math.round(diff/60)} min`;
+
+                            floorHtml += `<div class="slot occupied" onclick="alert('🚗 Car: ${slot.number}\\n🎨 Color: ${slot.color}\\n⏳ Time Spent: ${durationStr}')">
+                                            ${slot.number}
+                                          </div>`;
+                        } else {
+                            floorHtml += `<div class="slot" onclick="alert('Empty Slot')">${cIndex + 1}</div>`;
+                        }
+                    });
+
+                    floorHtml += `</div>`; 
+                });
+
+                floorHtml += `</div></div>`; 
+                container.innerHTML += floorHtml;
+            });
+
+            // UPDATE STATS IN HEADER
+            document.getElementById('stat-parked').innerText = occupiedCount;
+            document.getElementById('stat-free').innerText = (totalCapacity - occupiedCount);
+        }
+
+        async function submitCar() {
+            const data = {
+                car_no: document.getElementById('car_no').value,
+                color: document.getElementById('color').value,
+                type: document.getElementById('type').value,
+                floor: document.getElementById('floor_in').value,
+                row: document.getElementById('row_in').value,
+                col: document.getElementById('col_in').value
+            };
+            const response = await fetch('/api/park', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)});
+            const result = await response.json();
+            alert(result.message);
+            if(result.success) { closeModal('addModal'); fetchGrid(); }
+        }
+
+        async function processExit() {
+            const carNo = document.getElementById('del_car_no').value;
+            const response = await fetch('/api/leave', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({car_no: carNo})});
+            const result = await response.json();
+            alert(result.message);
+            if(result.success) { closeModal('delModal'); fetchGrid(); }
+        }
+
+        async function showSorted() {
+            const response = await fetch('/api/sorted');
+            const list = await response.json();
+            let msg = "⏳ Time Stayed (Longest First):\n\n";
+            list.forEach(c => {
+                let diff = Math.round((Date.now()/1000 - c.entry_time)/60); 
+                msg += `🚗 ${c.number} : ${diff} mins\n`;
+            });
+            alert(msg);
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        setInterval(fetchGrid, 2000);
+        fetchGrid();
+    </script>
+</body>
+</html>
