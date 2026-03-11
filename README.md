@@ -40,15 +40,15 @@ This system manages a parking lot with **3 Floors**, **4 Lanes per floor**, and 
 
 ### **1. Main Dashboard**
 The main interface displays the live status of all 120 slots across three floors. Red slots indicate occupied spaces.
-![Main Dashboard](./Screenshot/202025-12-02%20103457.png)
+![Main Dashboard](./Screenshot/2025-12-02103457.png)
 
 ### **2. Occupancy Management**
 The system tracks specific details for every vehicle, including plate number, color, and body type (SUV/Sedan).
-![Occupancy View](./Screenshot/202025-12-02%20104219.png)
+![Occupancy View](./Screenshot/2025-12-02104219.png)
 
 ### **3. Duration & Analytics**
 The "View Sorted List" feature retrieves data from the Hash Map and sorts it to show which vehicles have been in the lot the longest.
-![Sorting View](./Screenshot/202025-12-02%20104233.png)
+![Sorting View](./Screenshot/2025-12-02104233.png)
 
 ---
 
